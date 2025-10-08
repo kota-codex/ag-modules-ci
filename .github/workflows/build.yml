@@ -1,0 +1,119 @@
+name: Cross-platform build and release
+
+on:
+  workflow_call: {}
+
+permissions:
+  contents: write  # Needed to create releases
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: project
+      - uses: actions/checkout@v4
+        with:
+          repository: kota-codex/ag-modules-ci
+          path: ci
+      - name: Setup dependencies
+        shell: pwsh
+        run: |
+          choco install -y git cmake ninja visualstudio2022buildtools windows-sdk-10.0
+      - name: Setup MSVC environment
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: amd64_arm64
+      - name: Build Windows (x64 + arm64)
+        run: ci/build-win.bat
+        working-directory: project
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-out
+          path: project/out/
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: project
+      - uses: actions/checkout@v4
+        with:
+          repository: kota-codex/ag-modules-ci
+          path: ci
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y git cmake ninja-build
+          sudo apt-get install -y cmake ninja-build g++-aarch64-linux-gnu libc6-dev-arm64-cross
+      - name: Setup Android NDK (cached)
+        run: |
+          ANDROID_NDK_HOME=$(ls -d /usr/local/lib/android/sdk/ndk/* | sort -V | tail -n 1)
+          echo "Using NDK at: $ANDROID_NDK_HOME"
+          echo "ANDROID_NDK_HOME=$ANDROID_NDK_HOME" >> $GITHUB_ENV
+          echo "$ANDROID_NDK_HOME" >> $GITHUB_PATH
+      - name: Setup vcpkg
+        uses: lukka/run-vcpkg@v11
+        with:
+          vcpkgGitCommitId: '62324000504cdd27282f8275c99135cfb2bd1dc0'
+          runVcpkgInstall: false
+      - name: Build Linux/Android
+        run: ci/build-linux-android.sh
+        working-directory: project
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-out
+          path: project/out/
+  build-apple:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: project
+      - uses: actions/checkout@v4
+        with:
+          repository: kota-codex/ag-modules-ci
+          path: ci
+      - name: Install dependencies
+        run: |
+          brew install git cmake ninja
+      - name: Setup vcpkg
+        uses: lukka/run-vcpkg@v11
+        with:
+          vcpkgGitCommitId: '62324000504cdd27282f8275c99135cfb2bd1dc0'
+          runVcpkgInstall: false
+      - name: Build macOS + iOS
+        run: ci/build-apple.sh
+        working-directory: project
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: apple-out
+          path: project/out/
+  package:
+    runs-on: ubuntu-latest
+    needs: [build-windows, build-linux, build-apple]
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: out-by_builders
+      - name: Create per-module zip archives
+        run: |
+          mkdir out/temp
+          cp -ru out-by_builders/*/* out/temp
+          cd out
+          TAG="${GITHUB_REF_NAME#v.}"   # Strip 'v.' prefix (e.g., "2.33")
+          TAG=$(echo "$TAG" | cut -d. -f1)  # Extract major version (e.g., "2")
+          MODULE="${GITHUB_REPOSITORY#*/}-${TAG}"
+          mv temp ${MODULE}
+          zip -r "../${MODULE}.zip" "${MODULE}"
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: "*.zip"
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
