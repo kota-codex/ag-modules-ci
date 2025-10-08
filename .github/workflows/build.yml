@@ -100,7 +100,7 @@ jobs:
           path: out-by_builders
       - name: Create per-module zip archives
         run: |
-          mkdir out/temp
+          mkdir -p out/temp
           cp -ru out-by_builders/*/* out/temp
           cd out
           TAG="${GITHUB_REF_NAME#v.}"   # Strip 'v.' prefix (e.g., "2.33")
