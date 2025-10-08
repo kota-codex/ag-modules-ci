@@ -13,6 +13,8 @@ jobs:
           repository: kota-codex/ag-modules-ci
           path: ci
       - uses: actions/checkout@v4
+        with:
+          path: pr
       - name: Setup dependencies
         shell: pwsh
         run: |
@@ -24,13 +26,13 @@ jobs:
       - name: Build Windows (x64 + arm64)
         env:
           W: ${{ github.workspace }}
-        working-directory: ${{ github.workspace }}
+        working-directory: ${{ github.workspace }}/pr
         run: '%W%/ci/build-win.bat'
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: windows-out
-          path: out
+          path: pr/out
   build-linux:
     runs-on: ubuntu-latest
     steps:
@@ -39,6 +41,8 @@ jobs:
           repository: kota-codex/ag-modules-ci
           path: ci
       - uses: actions/checkout@v4
+        with:
+          path: pr
       - name: Install dependencies
         run: |
           sudo apt-get update
@@ -58,13 +62,13 @@ jobs:
       - name: Build Linux/Android
         env:
           W: ${{ github.workspace }}
-        working-directory: ${{ github.workspace }}
+        working-directory: ${{ github.workspace }}/pr
         run: $W/ci/build-linux-android.sh
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: linux-out
-          path: out
+          path: pr/out
   build-apple:
     runs-on: macos-latest
     steps:
@@ -73,6 +77,8 @@ jobs:
           repository: kota-codex/ag-modules-ci
           path: ci
       - uses: actions/checkout@v4
+        with:
+          path: pr
       - name: Install dependencies
         run: |
           brew install git cmake ninja
@@ -84,13 +90,13 @@ jobs:
       - name: Build macOS + iOS
         env:
           W: ${{ github.workspace }}
-        working-directory: ${{ github.workspace }}
+        working-directory: ${{ github.workspace }}/pr
         run: $W/ci/build-apple.sh
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: apple-out
-          path: out
+          path: pr/out
   package:
     runs-on: ubuntu-latest
     needs: [build-windows, build-linux, build-apple]
