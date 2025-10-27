@@ -56,7 +56,7 @@ jobs:
         uses: lukka/run-vcpkg@v11
         with:
           vcpkgGitCommitId: '62324000504cdd27282f8275c99135cfb2bd1dc0'
-          runVcpkgInstall: false
+          runVcpkgInstall: true
       - name: Build Linux/Android
         working-directory: ${{ github.workspace }}/pr
         run: ../ci/build-linux-android.sh
