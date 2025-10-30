@@ -1,9 +1,9 @@
-name: Cross-platform build and release
+name: Cross-platform build-only
 
 on:
   workflow_call: {}
 permissions:
-  contents: write  # Needed to create releases
+  contents: read
 jobs:
   build-windows:
     runs-on: windows-latest
@@ -82,7 +82,7 @@ jobs:
         uses: lukka/run-vcpkg@v11
         with:
           vcpkgGitCommitId: '62324000504cdd27282f8275c99135cfb2bd1dc0'
-          runVcpkgInstall: false
+          runVcpkgInstall: true
       - name: Build macOS + iOS
         working-directory: ${{ github.workspace }}/pr
         run: ../ci/build-apple.sh
@@ -97,21 +97,12 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          path: out-by_builders
+          path: out-by-builders
       - name: Create per-module zip archives
         run: |
-          mkdir -p out/temp
-          cp -ru out-by_builders/*/* out/temp
-          cd out
-          TAG="${GITHUB_REF_NAME#v.}"   # Strip 'v.' prefix (e.g., "2.33")
-          TAG=$(echo "$TAG" | cut -d. -f1)  # Extract major version (e.g., "2")
-          MODULE="${GITHUB_REPOSITORY#*/}-${TAG}"
-          mv temp ${MODULE}
-          zip -r "../${MODULE}.zip" "${MODULE}"
-      - name: Publish GitHub Release
-        uses: softprops/action-gh-release@v2
+          mkdir -p out
+          cp -ru out-by-builders/*/* out
+      - uses: actions/upload-artifact@v4
         with:
-          files: "*.zip"
-          generate_release_notes: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          name: ag-module
+          path: out

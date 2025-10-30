@@ -1,0 +1,34 @@
+name: Cross-platform build-only
+
+on:
+  workflow_call: {}
+permissions:
+  contents: write
+jobs:
+  inner-build:
+    uses: kota-codex/ag-modules-ci/.github/workflows/build.yml@main
+    secrets: inherit
+
+  publish:
+    runs-on: ubuntu-latest
+    needs: inner-build
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: ag-module
+          path: out
+      - name: Zip module
+        run: |
+          TAG="${GITHUB_REF_NAME#v.}"   # Strip 'v.' prefix (e.g., "2.33")
+          TAG=$(echo "$TAG" | cut -d. -f1)  # Extract major version (e.g., "2")
+          MODULE="${GITHUB_REPOSITORY#*/}-${TAG}"
+          mv out ${MODULE}
+          zip -r "${MODULE}.zip" "${MODULE}"
+          echo "MODULE=${MODULE}" >> $GITHUB_ENV
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: "${{ env.MODULE }}.zip"
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
