@@ -9,13 +9,34 @@ if exist "update.bat" (
     call update.bat
 )
 
+set VS_VCVARSALL="C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvarsall.bat"
+
 for /f %%p in ('wmic cpu get NumberOfLogicalProcessors ^| findstr /r /v "^$"') do set CORES=%%p
 
-set triplet=%1
+REM --------------------------------
+REM Compile platforms
+REM --------------------------------
+call :compilePlatform x64         x64-windows
+call :compilePlatform amd64_arm64 arm64-windows
+
+echo Build complete!
+endlocal
+exit /b
+
+
+REM ==============================================
+REM Function: compilePlatform vcvars_arg triplet
+REM ==============================================
+:compilePlatform
+setlocal
+set build_mode=%1
+set triplet=%2
 
 echo ================================
-echo Building for %triplet%
+echo Building for %triplet% (%build_mode%)
 echo ================================
+
+call %VS_VCVARSALL% %build_mode%
 
 set BUILD_DIR=build\%triplet%
 if not exist "!BUILD_DIR!" mkdir "!BUILD_DIR!"
@@ -33,3 +54,6 @@ for %%c in (%CONFIGS%) do (
 
     cmake --build "!BUILD_DIR!" --parallel !CORES!
 )
+
+endlocal
+exit /b
