@@ -11,7 +11,7 @@ if exist "update.bat" (
 
 set VS_VCVARSALL="C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvarsall.bat"
 
-for /f %%p in ('wmic cpu get NumberOfLogicalProcessors ^| findstr /r /v "^$"') do set CORES=%%p
+for /F %%p in ('powershell -Command "(Get-CimInstance Win32_Processor).NumberOfLogicalCores"') do set CORES=%%p
 
 REM --------------------------------
 REM Compile platforms

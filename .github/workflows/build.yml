@@ -19,10 +19,6 @@ jobs:
         shell: pwsh
         run: |
           choco install -y git cmake ninja visualstudio2022buildtools windows-sdk-10.0
-      - name: Setup MSVC environment
-        uses: ilammy/msvc-dev-cmd@v1
-        with:
-          arch: amd64_arm64
       - name: Build Windows (x64 + arm64)
         working-directory: ${{ github.workspace }}/pr
         run: ..\ci\build-win.bat
