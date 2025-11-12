@@ -1,7 +1,16 @@
 name: Cross-platform build-only
 
 on:
-  workflow_call: {}
+  workflow_call:
+    inputs:
+      repository:
+        type: string
+        required: false
+        default: ${{ github.repository }}
+      ref:
+        type: string
+        required: false
+        default: ${{ github.ref }}
 permissions:
   contents: read
 jobs:
@@ -14,6 +23,9 @@ jobs:
           path: ci
       - uses: actions/checkout@v4
         with:
+          repository: ${{ inputs.repository }}
+          ref: ${{ inputs.ref }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           path: pr
       - uses: lukka/get-cmake@latest
       - name: Setup vcpkg
