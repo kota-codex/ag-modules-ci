@@ -7,7 +7,7 @@ set -euo pipefail
 
 # update subpackages
 if [ -f "update.sh" ]; then
-  bash update.sh
+  ./update.sh
 fi
 
 # triple         arch
