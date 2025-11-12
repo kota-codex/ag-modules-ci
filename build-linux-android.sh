@@ -51,6 +51,7 @@ for tripleEntry in "${TRIPLES[@]}"; do
         "-DCMAKE_ANDROID_NDK=${ANDROID_NDK_HOME}"
         "-DCMAKE_ANDROID_ARCH_ABI=${arch}"
         "-DCMAKE_SYSTEM_VERSION=21"
+        "-DANDROID_PLATFORM=21"
       )
     fi
 
