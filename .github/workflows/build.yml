@@ -31,6 +31,7 @@ jobs:
       - name: Setup vcpkg
         uses: lukka/run-vcpkg@v11
         with:
+          vcpkgJsonGlob: pr/vcpkg.json
           doNotCache: false
       - uses: ilammy/msvc-dev-cmd@v1
         with:
@@ -73,8 +74,8 @@ jobs:
       - name: Setup vcpkg
         uses: lukka/run-vcpkg@v11
         with:
-          vcpkgGitCommitId: '62324000504cdd27282f8275c99135cfb2bd1dc0'
-          runVcpkgInstall: true
+          vcpkgJsonGlob: pr/vcpkg.json
+          doNotCache: false
       - name: Build Linux/Android
         working-directory: ${{ github.workspace }}/pr
         run: ../ci/build-linux-android.sh
@@ -99,8 +100,8 @@ jobs:
       - name: Setup vcpkg
         uses: lukka/run-vcpkg@v11
         with:
-          vcpkgGitCommitId: '62324000504cdd27282f8275c99135cfb2bd1dc0'
-          runVcpkgInstall: true
+          vcpkgJsonGlob: pr/vcpkg.json
+          doNotCache: false
       - name: Build macOS + iOS
         working-directory: ${{ github.workspace }}/pr
         run: ../ci/build-apple.sh
