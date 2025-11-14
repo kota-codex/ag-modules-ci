@@ -4,9 +4,10 @@ on:
   workflow_call:
 permissions:
   contents: read
-#env:
-#  VCPKG_BINARY_SOURCES: 'files,${{ github.workspace }}/vcpkg-cache,readwrite;default'
-#  VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/vcpkg-cache
+env:
+  VCPKG_BINARY_SOURCES: 'files,${{ github.workspace }}/vcpkg-cache,readwrite;default'
+  VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/vcpkg-cache
+  VCPKG_ROOT: ${{ github.workspace }}/vcpkg
 jobs:
   build-windows:
     runs-on: windows-latest
@@ -25,13 +26,13 @@ jobs:
           path: ${{ github.workspace }}/vcpkg-cache
           key: vcpkg-binaries-${{ runner.os }}
       - uses: lukka/get-cmake@latest
-      - name: Ensure vcpkg cache directory exists
-        run: mkdir -p "${{ github.workspace }}/vcpkg-cache"
-      - name: Setup vcpkg
-        uses: lukka/run-vcpkg@v11
-        with:
-          vcpkgJsonGlob: pr/vcpkg.json
-          binaryCachePath: ${{ github.workspace }}/vcpkg-cache
+      - name: Install vcpkg
+        shell: bash
+        run: |
+          mkdir -p "${{ github.workspace }}/vcpkg-cache"
+          git clone https://github.com/microsoft/vcpkg.git
+          ./vcpkg/bootstrap-vcpkg.sh
+          echo "$(pwd)/vcpkg" >> $GITHUB_PATH
       - uses: ilammy/msvc-dev-cmd@v1
         with:
           arch: x64
@@ -75,13 +76,13 @@ jobs:
           echo "Using NDK at: $ANDROID_NDK_HOME"
           echo "ANDROID_NDK_HOME=$ANDROID_NDK_HOME" >> $GITHUB_ENV
           echo "$ANDROID_NDK_HOME" >> $GITHUB_PATH
-      - name: Ensure vcpkg cache directory exists
-        run: mkdir -p "${{ github.workspace }}/vcpkg-cache"
-      - name: Setup vcpkg
-        uses: lukka/run-vcpkg@v11
-        with:
-          vcpkgJsonGlob: pr/vcpkg.json
-          binaryCachePath: ${{ github.workspace }}/vcpkg-cache
+      - name: Install vcpkg
+        shell: bash
+        run: |
+          mkdir -p "${{ github.workspace }}/vcpkg-cache"
+          git clone https://github.com/microsoft/vcpkg.git
+          ./vcpkg/bootstrap-vcpkg.sh
+          echo "$(pwd)/vcpkg" >> $GITHUB_PATH
       - name: Build Linux/Android
         working-directory: ${{ github.workspace }}/pr
         run: ../ci/build-linux-android.sh
@@ -108,13 +109,13 @@ jobs:
       - name: Install dependencies
         run: | # cmake ninja - preinstalled
           brew install git
-      - name: Ensure vcpkg cache directory exists
-        run: mkdir -p "${{ github.workspace }}/vcpkg-cache"
-      - name: Setup vcpkg
-        uses: lukka/run-vcpkg@v11
-        with:
-          vcpkgJsonGlob: pr/vcpkg.json
-          binaryCachePath: ${{ github.workspace }}/vcpkg-cache
+      - name: Install vcpkg
+        shell: bash
+        run: |
+          mkdir -p "${{ github.workspace }}/vcpkg-cache"
+          git clone https://github.com/microsoft/vcpkg.git
+          ./vcpkg/bootstrap-vcpkg.sh
+          echo "$(pwd)/vcpkg" >> $GITHUB_PATH
       - name: Build macOS + iOS
         working-directory: ${{ github.workspace }}/pr
         run: ../ci/build-apple.sh
