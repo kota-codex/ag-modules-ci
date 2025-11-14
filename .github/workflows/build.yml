@@ -4,9 +4,9 @@ on:
   workflow_call:
 permissions:
   contents: read
-env:
-  VCPKG_BINARY_SOURCES: 'files,${{ github.workspace }}/vcpkg-cache,readwrite;default'
-  VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/vcpkg-cache
+#env:
+#  VCPKG_BINARY_SOURCES: 'files,${{ github.workspace }}/vcpkg-cache,readwrite;default'
+#  VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/vcpkg-cache
 jobs:
   build-windows:
     runs-on: windows-latest
