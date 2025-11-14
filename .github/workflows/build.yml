@@ -28,6 +28,7 @@ jobs:
         with:
           path: ${{ github.workspace }}/vcpkg-cache
           key: vcpkg-bin-windows
+          restore-keys: vcpkg-bin-windows
       - uses: lukka/get-cmake@latest
       - name: Install vcpkg
         shell: bash
@@ -70,6 +71,7 @@ jobs:
         with:
           path: ${{ github.workspace }}/vcpkg-cache
           key: vcpkg-bin-linux
+          restore-keys: vcpkg-bin-linux
       - name: Install dependencies
         run: |
           sudo apt-get update
@@ -113,6 +115,7 @@ jobs:
         with:
           path: ${{ github.workspace }}/vcpkg-cache
           key: vcpkg-bin-apple
+          restore-keys: vcpkg-bin-apple
       - name: Install dependencies
         run: | # cmake ninja - preinstalled
           brew install git
