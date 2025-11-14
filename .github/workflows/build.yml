@@ -25,11 +25,10 @@ jobs:
           path: ${{ github.workspace }}/vcpkg-cache
           key: vcpkg-binaries-${{ runner.os }}
       - uses: lukka/get-cmake@latest
-#      - name: Setup vcpkg
-#        uses: lukka/run-vcpkg@v11
-#        with:
-#          vcpkgJsonGlob: pr/vcpkg.json
-#          doNotCache: false
+      - name: Setup vcpkg
+        uses: lukka/run-vcpkg@v11
+        with:
+          vcpkgJsonGlob: pr/vcpkg.json
       - uses: ilammy/msvc-dev-cmd@v1
         with:
           arch: x64
@@ -73,11 +72,10 @@ jobs:
           echo "Using NDK at: $ANDROID_NDK_HOME"
           echo "ANDROID_NDK_HOME=$ANDROID_NDK_HOME" >> $GITHUB_ENV
           echo "$ANDROID_NDK_HOME" >> $GITHUB_PATH
-#      - name: Setup vcpkg
-#        uses: lukka/run-vcpkg@v11
-#        with:
-#          vcpkgJsonGlob: pr/vcpkg.json
-#          doNotCache: false
+      - name: Setup vcpkg
+        uses: lukka/run-vcpkg@v11
+        with:
+          vcpkgJsonGlob: pr/vcpkg.json
       - name: Build Linux/Android
         working-directory: ${{ github.workspace }}/pr
         run: ../ci/build-linux-android.sh
@@ -104,11 +102,10 @@ jobs:
       - name: Install dependencies
         run: |
           brew install git cmake ninja
-#      - name: Setup vcpkg
-#        uses: lukka/run-vcpkg@v11
-#        with:
-#          vcpkgJsonGlob: pr/vcpkg.json
-#          doNotCache: false
+      - name: Setup vcpkg
+        uses: lukka/run-vcpkg@v11
+        with:
+          vcpkgJsonGlob: pr/vcpkg.json
       - name: Build macOS + iOS
         working-directory: ${{ github.workspace }}/pr
         run: ../ci/build-apple.sh
