@@ -29,6 +29,7 @@ jobs:
         uses: lukka/run-vcpkg@v11
         with:
           vcpkgJsonGlob: pr/vcpkg.json
+          binaryCachePath: ${{ github.workspace }}/vcpkg-cache
       - uses: ilammy/msvc-dev-cmd@v1
         with:
           arch: x64
@@ -76,6 +77,7 @@ jobs:
         uses: lukka/run-vcpkg@v11
         with:
           vcpkgJsonGlob: pr/vcpkg.json
+          binaryCachePath: ${{ github.workspace }}/vcpkg-cache
       - name: Build Linux/Android
         working-directory: ${{ github.workspace }}/pr
         run: ../ci/build-linux-android.sh
@@ -100,12 +102,13 @@ jobs:
           path: ${{ github.workspace }}/vcpkg-cache
           key: vcpkg-binaries-${{ runner.os }}
       - name: Install dependencies
-        run: |
-          brew install git cmake ninja
+        run: | # cmake ninja - preinstalled
+          brew install git
       - name: Setup vcpkg
         uses: lukka/run-vcpkg@v11
         with:
           vcpkgJsonGlob: pr/vcpkg.json
+          binaryCachePath: ${{ github.workspace }}/vcpkg-cache
       - name: Build macOS + iOS
         working-directory: ${{ github.workspace }}/pr
         run: ../ci/build-apple.sh
