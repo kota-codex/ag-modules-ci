@@ -2,17 +2,10 @@ name: Cross-platform build-only
 
 on:
   workflow_call:
-    inputs:
-      repository:
-        type: string
-        required: false
-        default: ${{ github.repository }}
-      ref:
-        type: string
-        required: false
-        default: ${{ github.ref }}
 permissions:
   contents: read
+env:
+  VCPKG_BINARY_SOURCES: 'files,${{ github.workspace }}/vcpkg-cache,readwrite;default'
 jobs:
   build-windows:
     runs-on: windows-latest
@@ -23,10 +16,13 @@ jobs:
           path: ci
       - uses: actions/checkout@v4
         with:
-          repository: ${{ inputs.repository }}
-          ref: ${{ inputs.ref }}
           token: ${{ secrets.GITHUB_TOKEN }}
           path: pr
+      - name: Cache vcpkg binaries
+        uses: actions/cache@v4
+        with:
+          path: ${{ github.workspace }}/vcpkg-cache
+          key: vcpkg-binaries-${{ runner.os }}
       - uses: lukka/get-cmake@latest
       - name: Setup vcpkg
         uses: lukka/run-vcpkg@v11
@@ -60,6 +56,11 @@ jobs:
       - uses: actions/checkout@v4
         with:
           path: pr
+      - name: Cache vcpkg binaries
+        uses: actions/cache@v4
+        with:
+          path: ${{ github.workspace }}/vcpkg-cache
+          key: vcpkg-binaries-${{ runner.os }}
       - name: Install dependencies
         run: |
           sudo apt-get update
@@ -94,6 +95,11 @@ jobs:
       - uses: actions/checkout@v4
         with:
           path: pr
+      - name: Cache vcpkg binaries
+        uses: actions/cache@v4
+        with:
+          path: ${{ github.workspace }}/vcpkg-cache
+          key: vcpkg-binaries-${{ runner.os }}
       - name: Install dependencies
         run: |
           brew install git cmake ninja
