@@ -25,6 +25,8 @@ jobs:
           path: ${{ github.workspace }}/vcpkg-cache
           key: vcpkg-binaries-${{ runner.os }}
       - uses: lukka/get-cmake@latest
+      - name: Ensure vcpkg cache directory exists
+        run: mkdir -p "${{ github.workspace }}/vcpkg-cache"
       - name: Setup vcpkg
         uses: lukka/run-vcpkg@v11
         with:
@@ -73,6 +75,8 @@ jobs:
           echo "Using NDK at: $ANDROID_NDK_HOME"
           echo "ANDROID_NDK_HOME=$ANDROID_NDK_HOME" >> $GITHUB_ENV
           echo "$ANDROID_NDK_HOME" >> $GITHUB_PATH
+      - name: Ensure vcpkg cache directory exists
+        run: mkdir -p "${{ github.workspace }}/vcpkg-cache"
       - name: Setup vcpkg
         uses: lukka/run-vcpkg@v11
         with:
@@ -104,6 +108,8 @@ jobs:
       - name: Install dependencies
         run: | # cmake ninja - preinstalled
           brew install git
+      - name: Ensure vcpkg cache directory exists
+        run: mkdir -p "${{ github.workspace }}/vcpkg-cache"
       - name: Setup vcpkg
         uses: lukka/run-vcpkg@v11
         with:
