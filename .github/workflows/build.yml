@@ -10,7 +10,14 @@ env:
   VCPKG_ROOT: ${{ github.workspace }}/vcpkg
 jobs:
   build-windows:
-    runs-on: windows-latest
+    strategy:
+      matrix:
+        include:
+          - arch: x64
+            runner: windows-latest
+          - arch: arm64
+            runner: windows-11-arm
+    runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -27,9 +34,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ github.workspace }}/vcpkg-cache
-          key: vcpkg-bin-windows
+          key: vcpkg-bin-win-${{ matrix.arch }}
           restore-keys: |
-            vcpkg-bin-windows
+            vcpkg-bin-win-${{ matrix.arch }}
       - uses: lukka/get-cmake@latest
       - name: Install vcpkg
         shell: bash
@@ -39,23 +46,26 @@ jobs:
           echo "$(pwd)/vcpkg" >> $GITHUB_PATH
       - uses: ilammy/msvc-dev-cmd@v1
         with:
-          arch: x64
+          arch: ${{ matrix.arch }}
       - name: Build Windows x64
         working-directory: ${{ github.workspace }}/pr
-        run: ..\ci\build-win.bat x64-windows
-      - uses: ilammy/msvc-dev-cmd@v1
-        with:
-          arch: amd64_arm64
-      - name: Build Windows arm64
-        working-directory: ${{ github.workspace }}/pr
-        run: ..\ci\build-win.bat arm64-windows
+        run: ..\ci\build-win.bat ${{ matrix.arch }}-windows
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: windows-out
+          name: win-out-${{ matrix.arch }}
           path: pr/out
   build-linux:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - arch: x64
+            android_abi: x86_64
+            runner: ubuntu-22.04
+          - arch: arm64
+            android_abi: arm64-v8a
+            runner: ubuntu-22.04-arm
+    runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -71,14 +81,13 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ github.workspace }}/vcpkg-cache
-          key: vcpkg-bin-linux
+          key: vcpkg-bin-lin-${{ matrix.arch }}
           restore-keys: |
-            vcpkg-bin-linux
+            vcpkg-bin-linux-${{ matrix.arch }}
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y git cmake ninja-build
-          sudo apt-get install -y cmake ninja-build g++-aarch64-linux-gnu libc6-dev-arm64-cross
+          sudo apt-get install -y ninja-build
       - name: Setup Android NDK (cached)
         run: |
           ANDROID_NDK_HOME=$(ls -d /usr/local/lib/android/sdk/ndk/* | sort -V | tail -n 1)
@@ -93,11 +102,11 @@ jobs:
           echo "$(pwd)/vcpkg" >> $GITHUB_PATH
       - name: Build Linux/Android
         working-directory: ${{ github.workspace }}/pr
-        run: ../ci/build-linux-android.sh
+        run: ../ci/build-linux-android.sh ${{ matrix.arch }} ${{ matrix.android_abi }}
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: linux-out
+          name: linux-out-${{ matrix.arch }}
           path: pr/out
   build-apple:
     runs-on: macos-latest
