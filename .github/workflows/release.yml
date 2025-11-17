@@ -1,4 +1,4 @@
-name: Cross-platform build-only
+name: Cross-platform build-release-tag
 
 on:
   workflow_call: {}
