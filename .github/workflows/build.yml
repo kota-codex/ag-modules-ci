@@ -60,10 +60,8 @@ jobs:
       matrix:
         include:
           - arch: x64
-            android_abi: x86_64
             runner: ubuntu-22.04
           - arch: arm64
-            android_abi: arm64-v8a
             runner: ubuntu-22.04-arm
     runs-on: ${{ matrix.runner }}
     steps:
@@ -83,17 +81,11 @@ jobs:
           path: ${{ github.workspace }}/vcpkg-cache
           key: vcpkg-bin-lin-${{ matrix.arch }}
           restore-keys: |
-            vcpkg-bin-linux-${{ matrix.arch }}
+            vcpkg-bin-lin-${{ matrix.arch }}
       - name: Install dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y ninja-build
-      - name: Setup Android NDK (cached)
-        run: |
-          ANDROID_NDK_HOME=$(ls -d /usr/local/lib/android/sdk/ndk/* | sort -V | tail -n 1)
-          echo "Using NDK at: $ANDROID_NDK_HOME"
-          echo "ANDROID_NDK_HOME=$ANDROID_NDK_HOME" >> $GITHUB_ENV
-          echo "$ANDROID_NDK_HOME" >> $GITHUB_PATH
       - name: Install vcpkg
         shell: bash
         run: |
@@ -102,11 +94,51 @@ jobs:
           echo "$(pwd)/vcpkg" >> $GITHUB_PATH
       - name: Build Linux/Android
         working-directory: ${{ github.workspace }}/pr
-        run: ../ci/build-linux-android.sh ${{ matrix.arch }} ${{ matrix.android_abi }}
+        run: ../ci/build-linux.sh ${{ matrix.arch }}
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: linux-out-${{ matrix.arch }}
+          path: pr/out
+  build-android:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: kota-codex/ag-modules-ci
+          path: ci
+      - uses: actions/checkout@v4
+        with:
+          path: pr
+      - name: Make sure vcpkg-cache exists
+        shell: bash
+        run: mkdir -p "${{ github.workspace }}/vcpkg-cache"
+      - name: Cache vcpkg binaries
+        uses: actions/cache@v4
+        with:
+          path: ${{ github.workspace }}/vcpkg-cache
+          key: vcpkg-bin-android
+          restore-keys: |
+            vcpkg-bin-android
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build
+      - name: Install vcpkg
+        shell: bash
+        run: |
+          git clone https://github.com/microsoft/vcpkg.git
+          ./vcpkg/bootstrap-vcpkg.sh
+          echo "$(pwd)/vcpkg" >> $GITHUB_PATH
+      - name: Build Android
+        working-directory: ${{ github.workspace }}/pr
+        run: |
+          ../ci/build-android.sh x64   x86_64
+          ../ci/build-android.sh arm64 arm64-v8a
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-out
           path: pr/out
   build-apple:
     runs-on: macos-latest

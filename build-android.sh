@@ -9,7 +9,7 @@ if [ -f "update.sh" ]; then
   ./update.sh
 fi
 
-triple=$1
+triple="$1-android"
 android_abi=$2
 CONFIGS=(Release Debug)
 GENERATOR="Ninja"
@@ -30,18 +30,12 @@ for config in "${CONFIGS[@]}"; do
     -DCMAKE_BUILD_TYPE="${config}"
     -DAG_OUT_DIR="${OUT_DIR}"
     -DAG_TRIPLE="${triple}"
+    -DCMAKE_SYSTEM_NAME=Android
+    -DCMAKE_ANDROID_NDK=${ANDROID_NDK_HOME}
+    -DCMAKE_ANDROID_ARCH_ABI=${android_abi}
+    -DCMAKE_SYSTEM_VERSION=21
+    -DANDROID_PLATFORM=21
   )
-  cmake "${CMAKE_ARGS[@]}"
-  cmake --build "${BUILD_DIR}" --parallel "$(nproc || echo 4)"
-
-  CMAKE_ARGS+=(
-    "-DCMAKE_SYSTEM_NAME=Android"
-    "-DCMAKE_ANDROID_NDK=${ANDROID_NDK_HOME}"
-    "-DCMAKE_ANDROID_ARCH_ABI=${android_abi}"
-    "-DCMAKE_SYSTEM_VERSION=21"
-    "-DANDROID_PLATFORM=21"
-  )
-
   cmake "${CMAKE_ARGS[@]}"
   cmake --build "${BUILD_DIR}" --parallel "$(nproc || echo 4)"
 done
